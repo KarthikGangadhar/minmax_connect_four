@@ -7,6 +7,19 @@
 import sys
 from MaxConnect4Game import *
 
+def printGameState(currentGame):
+    print 'Game state after move:'
+    currentGame.printGameBoard()
+
+    currentGame.countScore()
+    print('Score: Player 1 = %d, Player 2 = %d\n' % (currentGame.player1Score, currentGame.player2Score))
+
+def updateTurn(currentGame):
+    if currentGame.currentTurn == 1:
+        currentGame.currentTurn = 2
+    elif currentGame.currentTurn == 2:
+        currentGame.currentTurn = 1
+
 def oneMoveGame(currentGame):
     if currentGame.pieceCount == 42:    # Is the board full already?
         print 'BOARD FULL\n\nGame Over!\n'
@@ -24,25 +37,41 @@ def oneMoveGame(currentGame):
     currentGame.gameFile.close()
 
 
-def interactiveGame(currentGame):
-    # Fill me in
-    # sys.exit('Interactive mode is currently not implemented')
+def interactiveGame(currentGame, next = None):
+    printState = False
+    while(currentGame.pieceCount < 43):
+        if currentGame.pieceCount == 42:    # Is the board full already?
+            printGameState(currentGame)
+            print 'BOARD FULL\n\nGame Over!\n'
+            sys.exit(0)
 
-    if currentGame.pieceCount == 42:    # Is the board full already?
-        print 'BOARD FULL\n\nGame Over!\n'
-        sys.exit(0)
+        if next == "computer-next":
+            currentGame.aiPlay() # Make a move (only random is implemented)
+            next = "human-next"
+        elif next == "human-next":
+            try:
+                turn = int(input("Enter the column: "))
+                if turn <= 0 or turn > 7:
+                    printState = True
+                else:
+                    # for row in range(len(currentGame.gameBoard),  -1, -1):
+                    #     if currentGame.gameBoard[row - 1][turn -1] == 0:
+                    #         currentGame.gameBoard[row - 1][turn -1] = currentGame.currentTurn
+                    #         break
+                    currentGame.playPiece(turn - 1)
+                    updateTurn(currentGame)
+                    next = "computer-next"
+            except:
+                print("please enter valid input")
+            # currentGame.aiPlay() # Make a move (only random is implemented)
+            # next = "computer-next"
+        else:
+            print("Enter valid next-player")
 
-    currentGame.aiPlay() # Make a move (only random is implemented)
-
-    print 'Game state after move:'
-    currentGame.printGameBoard()
-
-    currentGame.countScore()
-    print('Score: Player 1 = %d, Player 2 = %d\n' % (currentGame.player1Score, currentGame.player2Score))
-
-    currentGame.printGameBoardToFile()
-    currentGame.gameFile.close()
-
+        printGameState(currentGame)
+        if printState:    
+            print("Enter valid column number")
+            printState = False
 
 def main(argv):
     # Make sure we have enough command-line arguments
@@ -52,7 +81,7 @@ def main(argv):
         print('or: %s one-move [input_file] [output_file] [depth]' % argv[0])
         sys.exit(2)
 
-    game_mode, inFile = argv[1:3]
+    game_mode, inFile, next = argv[1:4]
 
     if not game_mode == 'interactive' and not game_mode == 'one-move':
         print('%s is an unrecognized game mode' % game_mode)
@@ -82,7 +111,7 @@ def main(argv):
     print('Score: Player 1 = %d, Player 2 = %d\n' % (currentGame.player1Score, currentGame.player2Score))
 
     if game_mode == 'interactive':
-        interactiveGame(currentGame) # Be sure to pass whatever else you need from the command line
+        interactiveGame(currentGame, next) # Be sure to pass whatever else you need from the command line
     else: # game_mode == 'one-move'
         # Set up the output file
         outFile = argv[3]

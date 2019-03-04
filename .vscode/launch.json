@@ -10,8 +10,9 @@
             "interactive",
             // "one-move", 
             "input1.txt",  
-            "computer-next", 
-            "3"
+            // "computer-next",
+            "human-next" ,
+            "10"
           ]
       }
   ]

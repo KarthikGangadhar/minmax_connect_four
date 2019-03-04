@@ -50,7 +50,7 @@ class maxConnect4Game:
 
     # The AI section. Currently plays randomly.
     def aiPlay(self):
-        randColumn = random.randrange(0,7)
+        randColumn = self.getNextMove()
         result = self.playPiece(randColumn)
         if not result:
             self.aiPlay()
@@ -306,4 +306,9 @@ class maxConnect4Game:
 
     def heuristic_value(self,node):
         # return the heuristic value of node
-        pass    
+        pass
+
+    def getNextMove(self):
+        self.alphabeta(node, depth, alp, beta, maximizingPlayer)
+        # return random.randrange(0,7)
+        # self.alphabeta(node, depth, alp, beta, maximizingPlayer)
