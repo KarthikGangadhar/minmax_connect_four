@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "name": "Python",
+          "type": "python",
+          "request": "launch",
+          "program": "${workspaceFolder}/maxconnect4.py",
+          "args": [
+            "interactive",
+            // "one-move", 
+            "input1.txt",  
+            "computer-next", 
+            "3"
+          ]
+      }
+  ]
+}
