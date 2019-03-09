@@ -38,7 +38,7 @@ def oneMoveGame(currentGame):
 
 
 def interactiveGame(currentGame, next = None):
-    printState = False
+    printState = anotherState = False
     while(currentGame.pieceCount < 43):
         if currentGame.pieceCount == 42:    # Is the board full already?
             printGameState(currentGame)
@@ -46,7 +46,7 @@ def interactiveGame(currentGame, next = None):
             sys.exit(0)
 
         if next == "computer-next":
-            currentGame.aiPlay() # Make a move (only random is implemented)
+            currentGame.aiPlay()
             next = "human-next"
         elif next == "human-next":
             try:
@@ -54,17 +54,15 @@ def interactiveGame(currentGame, next = None):
                 if turn <= 0 or turn > 7:
                     printState = True
                 else:
-                    # for row in range(len(currentGame.gameBoard),  -1, -1):
-                    #     if currentGame.gameBoard[row - 1][turn -1] == 0:
-                    #         currentGame.gameBoard[row - 1][turn -1] = currentGame.currentTurn
-                    #         break
-                    currentGame.playPiece(turn - 1)
-                    updateTurn(currentGame)
-                    next = "computer-next"
+                    col = map(lambda x: x[turn-1], currentGame.gameBoard)
+                    if col.count(0) == 0:
+                        anotherState = True
+                    else:    
+                        currentGame.playPiece(turn - 1)
+                        updateTurn(currentGame)
+                        next = "computer-next"
             except:
                 print("please enter valid input")
-            # currentGame.aiPlay() # Make a move (only random is implemented)
-            # next = "computer-next"
         else:
             print("Enter valid next-player")
 
@@ -72,6 +70,8 @@ def interactiveGame(currentGame, next = None):
         if printState:    
             print("Enter valid column number")
             printState = False
+        elif anotherState:
+            print("select another column, its already full")
 
 def main(argv):
     # Make sure we have enough command-line arguments
@@ -81,13 +81,14 @@ def main(argv):
         print('or: %s one-move [input_file] [output_file] [depth]' % argv[0])
         sys.exit(2)
 
-    game_mode, inFile, next = argv[1:4]
+    game_mode, inFile, next, depth = argv[1:5]
 
     if not game_mode == 'interactive' and not game_mode == 'one-move':
         print('%s is an unrecognized game mode' % game_mode)
         sys.exit(2)
 
     currentGame = maxConnect4Game() # Create a game
+    currentGame.depth = int(depth)
 
     # Try to open the input file
     try:

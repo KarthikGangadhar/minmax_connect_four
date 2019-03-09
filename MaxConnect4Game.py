@@ -4,10 +4,9 @@
 # code provided by Vassilis Athitsos
 # Written to be Python 2.4 compatible for omega
 
-from copy import copy
-import random
 import sys
 import math
+import copy
 
 class maxConnect4Game:
     def __init__(self):
@@ -17,7 +16,8 @@ class maxConnect4Game:
         self.player2Score = 0
         self.pieceCount = 0
         self.gameFile = None
-        random.seed()
+        self.nodeDepth = 0
+        self.depth = 0
 
     # Count the number of pieces already played
     def checkPieceCount(self):
@@ -50,12 +50,13 @@ class maxConnect4Game:
 
     # The AI section. Currently plays randomly.
     def aiPlay(self):
-        randColumn = self.getNextMove()
-        result = self.playPiece(randColumn)
+        alphabeta = alphaBeta(self, self.depth)
+        nextMove = alphabeta.computeNextMove()
+        result = self.playPiece(nextMove)
         if not result:
             self.aiPlay()
         else:
-            print('\n\nmove %d: Player %d, column %d\n' % (self.pieceCount, self.currentTurn, randColumn+1))
+            print('\n\nmove %d: Player %d, column %d\n' % (self.pieceCount, self.currentTurn, nextMove + 1))
             if self.currentTurn == 1:
                 self.currentTurn = 2
             elif self.currentTurn == 2:
@@ -262,53 +263,111 @@ class maxConnect4Game:
                self.gameBoard[4][4] == 2 and self.gameBoard[5][3] == 2):
             self.player2Score += 1
 
+def updateGamePiece(game, gameNode, col):
+    if not (game.gameBoard[0][col]):
+        for row in range(5, -1, 1):
+            if not (gameNode.gameBoard[row][col]):
+                gameNode.gameBoard[row][col] = game.currentTurn
+                gameNode.pieceCount = gameNode.pieceCount + 1
+                break 
+    return gameNode           
 
-    def minimax(self, node, depth, maximizingPlayer):
-        if depth == 0 or self.isterminalnode(node):
-            return self.heuristic_value(node)
+def getNextMove(game, col):
+    gameNode = maxConnect4Game()
+    
+    if game.nodeDepth == 0:
+        gameNode.nodeDepth = 1 
+    else:
+        gameNode.nodeDepth = game.nodeDepth + 1
 
-        if maximizingPlayer:
-            value = -float('inf')
-            for child in node:
-                value = max(value, self.minimax(child, depth-1, False)) 
-            return value
-        else:
-            value = float('inf')
-            for child in node:
-                value = min(value, self.minimax(child, depth-1, True))
-            return value
+    updateGamePiece(game, gameNode, col)
+    gameNode.pieceCount = game.pieceCount
+    gameNode.gameBoard = copy.deepcopy(game.gameBoard)
+    gameNode.checkPieceCount()
+    gameNode.countScore()
+    return gameNode
 
-    def alphabeta(self, node, depth, alp, beta, maximizingPlayer):
-        if (depth == 0 or self.isterminalnode(node)):
-            return self.heuristic_value(node)
+def validLocations(board):
+    return [key for key, value in enumerate(board[0]) if value == 0]
 
-        if maximizingPlayer:
-            value = -float('inf')
-            for child in node:
-                value = max(value, self.alphabeta(child, depth -1, alp, beta, False))
-                alp = max(alp, value) 
-                if alp >= beta:
-                    break
-            return value
-        else:
-            value = float('inf')
-            for child in node:
-                value = min(value, self.alphabeta(child, depth-1, alp, beta, True))
-                beta = min(beta, value)
-                if alp >= beta:
-                    break
-            return value        
+class alphaBeta:
+    def __init__(self, game, depth):
+        self.currentTurn = game.currentTurn
+        self.game = game
+        self.pruningLevel = depth
+        self.max = 9999999
+        self.min = -9999999
 
-    def isterminalnode(self,node):
-        # node is a terminal node return True
-        # else false
-        pass    
+    def computeNextMove(self):
+        moves = []
+        locations = validLocations(self.game.gameBoard)
+        for location in locations:
+            move = getNextMove(self.game, location)
+            moves.append( self.miniMax(move, self.max, self.min, "minimizer"))
+        return locations[moves.index(max(moves))]
 
-    def heuristic_value(self,node):
-        # return the heuristic value of node
-        pass
+    def miniMax(self, CurrentState, alpha, beta, turn):
+        if CurrentState.pieceCount == 42 or CurrentState.nodeDepth == self.pruningLevel:
+            return self.scorePosition(CurrentState.gameBoard, CurrentState.currentTurn)
 
-    def getNextMove(self):
-        self.alphabeta(node, depth, alp, beta, maximizingPlayer)
-        # return random.randrange(0,7)
-        # self.alphabeta(node, depth, alp, beta, maximizingPlayer)
+        locations = validLocations(CurrentState.gameBoard)
+        if turn == "minimizer":
+            val = self.max
+            for location in locations:
+                nextMove = getNextMove(CurrentState, location)
+                val = min(val, self.miniMax(nextMove, alpha, beta, "maximizer"))
+                if val <= alpha:
+                    return val
+                beta = min(beta, val)
+
+        elif turn == "maximizer":
+            val = self.min
+            for location in locations:
+                nextMove = getNextMove(CurrentState, location)
+                val = min(val, self.miniMax(nextMove, alpha, beta, "minimizer"))
+                if val >= beta:
+                    return val
+                alpha = min(alpha, val)
+        
+        return val
+
+    def evalateWindow(self, window, turn):
+        score = 0
+        opponent  = 1
+        if turn == 1:
+            opponent = 2                 
+        if window.count(turn) == 4:
+            score += 100
+        elif window.count(turn) == 3  and window.count(0) == 1:
+            score += 5
+        elif window.count(turn) == 2  and window.count(0) == 2:
+            score += 2
+        elif window.count(opponent) == 3  and window.count(0) == 1:
+            score -= 4
+
+        return score                            
+
+    def scorePosition(self, board, piece):
+        score = 0
+        for r in range(6):
+            for c in range(4):
+                window = board[r][c:c+4]
+                score += self.evalateWindow(window, self.game.currentTurn)
+
+        for c in range(7):
+            col = map(lambda x: x[c], board)
+            for r in range(3):
+                window = col[r:r+4]
+                score += self.evalateWindow(window, self.game.currentTurn)
+
+        for r in range(3):
+            for c in range(4):
+                window = [board[r+i][c+i] for i in range(4)]
+                score += self.evalateWindow(window, self.game.currentTurn)
+
+        for r in range(3):
+            for c in range(4):
+                window = [board[r+3-i][c+i] for i in range(4)]
+                score += self.evalateWindow(window, self.game.currentTurn)
+
+        return score
