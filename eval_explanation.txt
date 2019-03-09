@@ -1,0 +1,11 @@
+The eval function calculate the score using contunuos addition of the players position values 
+for both rows and columns.
+
+For each windows of 4 elements of both columns and rows 
+The program will try to calculate counts of current players consecutive moves
+present in the provided window of the elements.
+
+if the window contains all 4 values of current players number then 100 points added.
+if the window contains all 3 values of current players number then 5 points added.
+if the window contains all 2 values of current players number then 2 points added.
+if the window contains 3 values of opponent players, current players number deducted by 4. 
