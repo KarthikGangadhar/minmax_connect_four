@@ -294,15 +294,21 @@ def getNextMove(game, col):
     else:
         gameNode.nodeDepth = game.nodeDepth + 1
 
-    updateGamePiece(game, gameNode, col)
+    gameNode = updateGamePiece(game, gameNode, col)
     gameNode.pieceCount = game.pieceCount
     gameNode.gameBoard = copy.deepcopy(game.gameBoard)
     gameNode.checkPieceCount()
     gameNode.countScore()
     return gameNode
 
-def validLocations(board):
-    return [key for key, value in enumerate(board[0]) if value == 0]
+def validLocations(board, row = 5):
+	validLocations = []
+	for col in range(7):
+		if board[row][col] == 0:
+			validLocations.append(col)
+	if len(validLocations) == 0:
+		return validLocations(board, row-1)            
+	return validLocations
 
 class alphaBeta:
     def __init__(self, game, depth):
@@ -330,18 +336,17 @@ class alphaBeta:
             for location in locations:
                 nextMove = getNextMove(CurrentState, location)
                 val = min(val, self.miniMax(nextMove, alpha, beta, "maximizer"))
-                if val <= alpha:
-                    return val
                 beta = min(beta, val)
-
+                if alpha >= beta:
+                    break
         elif turn == "maximizer":
             val = self.min
             for location in locations:
                 nextMove = getNextMove(CurrentState, location)
-                val = min(val, self.miniMax(nextMove, alpha, beta, "minimizer"))
-                if val >= beta:
-                    return val
-                alpha = min(alpha, val)
+                val = max(val, self.miniMax(nextMove, alpha, beta, "minimizer"))
+                alpha = max(alpha, val)
+                if alpha >= beta:
+                    break
         
         return val
 
