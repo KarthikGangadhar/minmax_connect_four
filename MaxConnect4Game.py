@@ -48,7 +48,8 @@ class maxConnect4Game:
             # dataFile.write(''.join(str(col) for col in row) + '\r\n')
             for row in self.gameBoard:
                 dataFile.write(''.join(str(col) for col in row) + '\r\n')
-
+            dataFile.write('%s\r\n' % str(self.currentTurn))
+            
         except IOError:
             sys.exit("\nError opening input file.\nCheck file name.\n")
 

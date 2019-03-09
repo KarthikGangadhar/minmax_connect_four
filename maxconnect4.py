@@ -76,6 +76,7 @@ def interactiveGame(currentGame, next = None):
             printState = False
         elif anotherState:
             print("select another column, its already full")
+            anotherState = False
 
 def main(argv):
     # Make sure we have enough command-line arguments
