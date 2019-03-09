@@ -47,6 +47,8 @@ def interactiveGame(currentGame, next = None):
 
         if next == "computer-next":
             currentGame.aiPlay()
+            currentGame.printInteractiveGameBoardToFile("computer")
+            currentGame.gameFile.close()
             next = "human-next"
         elif next == "human-next":
             try:
@@ -60,6 +62,8 @@ def interactiveGame(currentGame, next = None):
                     else:    
                         currentGame.playPiece(turn - 1)
                         updateTurn(currentGame)
+                        currentGame.printInteractiveGameBoardToFile("human")
+                        currentGame.gameFile.close()
                         next = "computer-next"
             except:
                 print("please enter valid input")

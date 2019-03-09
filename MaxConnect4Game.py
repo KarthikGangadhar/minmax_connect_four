@@ -39,6 +39,19 @@ class maxConnect4Game:
             self.gameFile.write(''.join(str(col) for col in row) + '\r\n')
         self.gameFile.write('%s\r\n' % str(self.currentTurn))
 
+    # Output current game status to file
+    def printInteractiveGameBoardToFile(self, turn):
+        # Try to open the input file
+        try:
+            txtFile = turn + ".txt"
+            dataFile = open(txtFile, 'w')
+            # dataFile.write(''.join(str(col) for col in row) + '\r\n')
+            for row in self.gameBoard:
+                dataFile.write(''.join(str(col) for col in row) + '\r\n')
+
+        except IOError:
+            sys.exit("\nError opening input file.\nCheck file name.\n")
+
     # Place the current player's piece in the requested column
     def playPiece(self, column):
         if not self.gameBoard[0][column]:
